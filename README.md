@@ -73,24 +73,6 @@ This repository contains the code for the first three weeks of the project, orga
 ![Confusion Matrix](path/to/your/confusion_matrix_image.png)
 *Fig 1: Confusion Matrix of MobileNetV2 showing near-perfect diagonal alignment.*
 
----
-
-## 🚀 How to Run
-The project requires **Python 3.x** and the following libraries:
-* `torch` / `torchvision` (PyTorch)
-* `scikit-learn`
-* `matplotlib` & `seaborn`
-* `pandas` & `numpy`
-
-1.  Clone the repo:
-    ```bash
-    git clone [INSERT YOUR REPO LINK HERE]
-    ```
-2.  Open the notebooks in Jupyter or Kaggle.
-3.  Ensure the PlantVillage dataset is mounted in the input directory.
-
----
-
 ## 🏆 Acknowledgments
 * **Winter in Data Science (WiDS)** for the mentorship and project structure.
 * **Kaggle** for the dataset and GPU resources.
