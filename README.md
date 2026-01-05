@@ -1,8 +1,173 @@
-# 🌱 Plant Disease Detection | End-to-End ML Systems with Federated Averaging | WiDS 5.0
+# 🌱 Plant Disease Detection | End-to-End ML Systems | WiDS 5.0
 
-**Project Duration:** 3 Weeks (Midterm Submission)  
-**Domain:** Computer Vision, Agriculture, Deep Learning  
-**Dataset:** [PlantVillage (Kaggle)](https://www.kaggle.com/datasets/emmarex/plantdisease)
+**Dataset:** [PlantVillage (Kaggle)](https://www.kaggle.com/datasets/abdallahalidev/plantvillage-dataset/data)
+
+---
+
+## 📌 Project Overview
+This project explores the progression from traditional Machine Learning to state-of-the-art Deep Learning techniques for classifying plant leaf diseases. Working with the **PlantVillage dataset**, the mid-term goal was to build a robust model capable of assisting in disease diagnosis for different crops like Apple, Corn, Potato, Tomato, etc.
+
+All of the code is stored in three different Kaggle notebooks, each of which can be accessed as they are linked to this repository. 
+
+The project follows a **First Principles approach** along a 3-week timeline :
+
+- **Week 1**: Understanding the data through rigorous Exploratory Data Analysis (EDA).
+- **Week 2**: Establishing baselines using Classical Machine Learning techniques like SVMs & Random Forests.
+- **Week 3**: Developing state-of-the-art Deep Learning models (CNNs & Transfer Learning).
+
+---
+
+## 📂 Repository Structure
+
+| Notebook | Description | 
+|--------|------------|
+| `Week1_EDA.ipynb` | Exploratory Data Analysis: data inspection, class imbalance visualization, pixel intensity analysis | 
+| `Week2_ClassicalML.ipynb` | Classical ML baselines: feature extraction, PCA, SVM vs Random Forest | 
+| `Week3_CNNs.ipynb` | Deep Learning: custom CNN (from scratch) vs Transfer Learning (MobileNetV2) | |
+
+---
+
+## 🗓️ Weekly Methodology & Technical Details
+
+### Week 1: Exploratory Data Analysis (EDA)
+
+**Goal**  
+Peform EDA to get at least class distribution visualization, sample image grid (multiple images per class), Image resolution/size analysis and 2-3 meaningful insights about the dataset.
+
+**Key Decisions & Analysis**
+
+- **Data Selection**:
+Chose the *color* folder in the dataset to preserve diagnostic features such as chlorosis and rust spores that are lost in grayscale images.
+- **Class Distribution Analysis**:
+Various different graphs & visualisations were plotted like bar graphs, pie chart, sun burst chart, stacked bar graphs, treemap to assess the distribution pattern in the dataset.
+
+- **Data Quality Audit**:
+   - Aspect ratio was checekd using PIL, where all the images were found to be of the standard 256×256 size.
+   - Background consistency check was done using corner-pixel color sampling.
+   - Blurs were detected using the concept of Laplacian blur for various classes & plotted into a candlestick chart.
+   - Lighting variation analysis was done using HSV-based brightness (V-channel) distribution across classes.
+   - Leaf-to-background ratio check was done using grayscale conversion and Otsu’s thresholding to estimate leaf pixel coverage.
+   
+- **Visual inspection**:
+  This was performed using class-wise galleries and side-by-side comparisons.
+  
+- **Biological Feature Analysis**:
+   - Chlorophyll variation was analyzed using green-channel intensity distributions across biologically diverse classes.
+   - Biological color separability was evaluated using mean HSV hue and saturation features across healthy, viral, and fungal classes.
+   - Leaf texture differences were analyzed using GLCM-based contrast and homogeneity features.
+   - Full RGB color distribution was analyzed using mean channel intensities across disease classes.
+   - Model feasibility was evaluated using PCA on flattened pixel intensities to assess class separability.
+   - Non-linear class separability was analyzed using t-SNE embeddings of scaled pixel features.
+
+**Key Insight**  
+- Massive class imbalance observed:
+  - `Orange___Huanglongbing`: ~5.5K images  
+  - `Corn_(maize)___healthy`: 21 images
+- Background: Corner pixel analysis confirms a somehwat uniform background.
+- Lighting: Brightness distribution is more or less consistent.
+- Several disease classes are visually similar, increasing the difficulty of fine-grained classification.
+
+---
+
+### Week 2: Classical Machine Learning Baselines
+
+**Goal**  
+Evaluate the limits of non-deep-learning approaches by treating images as numerical feature vectors.
+
+#### Feature Engineering
+- Flattened images from `(224, 224, 3)` to vectors of size **150,528**
+- Applied **StandardScaler** to normalize pixel intensities
+- Experimented with **PCA (Principal Component Analysis)** for dimensionality reduction
+
+#### Models Evaluated
+- **DummyClassifier** (Chance baseline): ~10% accuracy
+- **Linear SVC**: ~66% accuracy
+- **Random Forest Classifier**: **68.5% accuracy** (best classical model)
+
+#### Failure Analysis
+- Random Forest failed catastrophically on texture-heavy classes:
+  - *Apple Cedar Rust*: **F1-score = 0.00**
+
+**Conclusion**  
+Classical ML models struggle to capture **spatial dependencies** (edges, shapes, textures) inherent in image data.
+
+---
+
+### Week 3: Deep Learning & Transfer Learning
+
+**Goal**  
+Move from manual feature engineering to **automatic feature learning**.
+
+---
+
+#### Stage 1: Custom CNN (From Scratch)
+
+**Architecture**
+- A deliberately *minimal* 2-layer CNN:
+  - `Conv2D (16 filters) → ReLU → MaxPool`
+  - `Conv2D (32 filters) → ReLU → MaxPool`
+  - `Dense (Output Layer)`
+
+**The Overfitting Experiment**
+- Trained **without data augmentation**
+- Results:
+  - Training Accuracy: **~99%**
+  - Validation Accuracy: **~88%**
+
+**Key Observation**
+- Loss curves showed classic divergence:
+  - Training loss ↓
+  - Validation loss ↑  
+  → Clear evidence of overfitting
+
+---
+
+#### Stage 2: Transfer Learning (The Solution)
+
+**Architecture**
+- **MobileNetV2**, pretrained on ImageNet
+
+**Technique**
+- **Frozen Backbone**: reused pretrained feature extractors
+- **Custom Classification Head**: linear layer for 38 classes
+- **Data Augmentation**:
+  - Random rotations
+  - Horizontal/vertical flips
+  - Affine zoom transformations
+
+**Result**
+- **97% validation accuracy in just 5 epochs**
+- Stable convergence with no train–validation gap
+
+---
+
+## 📊 Results Comparison
+
+| Model Architecture | Accuracy | Apple Cedar Rust (F1) | Potato Healthy (F1) |
+|------------------|----------|----------------------|---------------------|
+| Random Forest (Week 2) | 68.53% | 0.00 | 0.00 |
+| Simple CNN (Week 3) | 88.42% | 0.72 | 0.45 |
+| MobileNetV2 (Week 3) | **97.00%** | **1.00** | **0.80** |
+
+---
+
+## 📈 Performance Visualizations
+
+### 1. Overfitting in Simple CNN (The Problem)
+Validation loss increases while training loss decreases, indicating memorization rather than generalization.
+
+### 2. Robustness in Transfer Learning (The Solution)
+MobileNetV2 exhibits stable convergence with overlapping training and validation curves.
+
+---
+
+## ✅ Key Takeaways
+
+- EDA-driven insights strongly influence downstream modeling decisions
+- Classical ML models are insufficient for high-dimensional image data
+- CNNs learn spatial hierarchies but require regularization
+- Transfer Learning provides both **performance and efficiency**, even with limited training epochs
+
 
 ## 📌 Project Overview
 This project explores the progression from traditional Machine Learning to state-of-the-art Deep Learning techniques for classifying plant leaf diseases. Working with the **PlantVillage dataset** (38 classes, ~54k images), the goal was to build a robust model capable of assisting in early disease diagnosis for crops like Apple, Corn, Potato, and Tomato.
