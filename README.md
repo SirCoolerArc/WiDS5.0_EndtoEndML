@@ -72,46 +72,50 @@ Various different graphs & visualisations were plotted like bar graphs, pie char
 ### Week 2: Classical Machine Learning Baselines
 
 **Goal**  
-Evaluate the limits of non-deep-learning approaches by treating images as numerical feature vectors.
+Evaluate the limits of non-deep-learning approaches & find the "ceiling" of classical Machine Learning. Build a system that classifies plant diseases using "Old School" methods (SVMs, Random Forests) on raw pixel data. This score will serve as the benchmark that our Deep Learning models must beat in the week that follows.
 
 #### Feature Engineering
-- Flattened images from `(224, 224, 3)` to vectors of size **150,528**
-- Applied **StandardScaler** to normalize pixel intensities
-- Experimented with **PCA (Principal Component Analysis)** for dimensionality reduction
+- Images were resized from `(224, 224, 3)` to `(64, 64, 3)` and flattened into a feature matrix with corresponding class labels. This was done to ease the load on RAM & also faster & efficient training. 
+- Data was split into training and testing sets and standardized using z-score normalization via StandardScaler.
+- Dimensionality reduction was performed using fast randomized **Principal Component Analysis (PCA)**, reducing the feature space from `12,288` to `150` components.
 
 #### Models Evaluated
-- **DummyClassifier** (Chance baseline): ~10% accuracy
-- **Linear SVC**: ~66% accuracy
-- **Random Forest Classifier**: **68.5% accuracy** (best classical model)
+- **DummyClassifier** (Chance baseline): 10.58% accuracy
+- **Nearest Centroid**: 37.28% accuracy
+- **Linear SVM (PCA+Linear)**: 66.18% accuracy
+- **Random Forest Classifier**: 68.53% accuracy (best classical model)
 
 #### Failure Analysis
-- Random Forest failed catastrophically on texture-heavy classes:
-  - *Apple Cedar Rust*: **F1-score = 0.00**
+- Random Forest performs well when diseases have distinct visual signatures or consistent texture/color cues. On raw pixels, it handles coarse texture and strong color cues well.
+- Several classes exhibit near-zero recall due to strong visual similarity with related diseases and class imbalance, highlighting the inability of pixel-based Random Forests to separate subtle disease variations.
+- Healthy leaves are frequently misclassified because “healthy” varies significantly across plant species, making a single healthy label biologically inconsistent in raw pixel feature space.
+- Diseases within the same plant species are heavily confused as they differ primarily in fine-grained lesion morphology rather than global color, which flattened pixel representations fail to capture.
 
 **Conclusion**  
-Classical ML models struggle to capture **spatial dependencies** (edges, shapes, textures) inherent in image data.
+Classical machine learning models on flattened pixel features achieve moderate performance (~69% accuracy) and capture coarse color and texture cues but fail on fine-grained, visually similar diseases and several minority classes. The confusion patterns, especially within the same plant species and between healthy vs. diseased leaves highlight fundamental limitations of non-spatial models. These results establish a solid baseline and clearly motivate the need for CNN-based approaches to learn localized, disease-specific visual features for meaningful performance gains. 
 
 ---
 
 ### Week 3: Deep Learning & Transfer Learning
 
 **Goal**  
-Move from manual feature engineering to **automatic feature learning**.
+Build a CNN that learns features directly from images and outperform classical ML, then apply transfer learning to achieve ~85–90% accuracy, marking the transition from traditional methods to modern, powerful deep learning.
 
 ---
 
-#### Stage 1: Custom CNN (From Scratch)
-
+#### Stage 1: Simple CNN (From Scratch)
+The dataset was split into augmented training and clean validation subsets using an 80–20 split. DataLoaders were created for batched training and validation, and augmented samples were visually inspected.
 **Architecture**
 - A deliberately *minimal* 2-layer CNN:
-  - `Conv2D (16 filters) → ReLU → MaxPool`
-  - `Conv2D (32 filters) → ReLU → MaxPool`
-  - `Dense (Output Layer)`
+  - `Conv2D (3 → 16 filters, 3×3) → ReLU → MaxPool (2×2)`
+  - `Conv2D (16 → 32 filters, 3×3) → ReLU → MaxPool (2×2)`
+  - `Flatten → Dense (32 × 56 × 56 → 38)`
 
 **The Overfitting Experiment**
-- Trained **without data augmentation**
+- The model was trained using mini-batch gradient descent with backpropagation for 10 epochs and evaluated on a validation set each epoch.
+- Using Adam and cross-entropy loss, the CNN learned effective visual features.
 - Results:
-  - Training Accuracy: **~99%**
+  - Training Accuracy: **~99.5%**
   - Validation Accuracy: **~88%**
 
 **Key Observation**
@@ -125,39 +129,34 @@ Move from manual feature engineering to **automatic feature learning**.
 #### Stage 2: Transfer Learning (The Solution)
 
 **Architecture**
-- **MobileNetV2**, pretrained on ImageNet
-
+- A **MobileNetV2** model pretrained on ImageNet was initialized, its backbone frozen, and the classifier head replaced to adapt the network for plant disease classification.
 **Technique**
-- **Frozen Backbone**: reused pretrained feature extractors
-- **Custom Classification Head**: linear layer for 38 classes
-- **Data Augmentation**:
-  - Random rotations
-  - Horizontal/vertical flips
-  - Affine zoom transformations
+- Frozen Backbone reuses pretrained feature extractors.
+- Custom Classification Head is a linear layer for 38 classes.
+- Data Augmentation is still present in the form of random rotations, horizontal/vertical flips, affine zoom transformations.
 
 **Result**
-- **97% validation accuracy in just 5 epochs**
-- Stable convergence with no train–validation gap
+- **97% validation accuracy** in just **5 epochs**.
+- Stable convergence with no train–validation gap.
 
 ---
 
-## 📊 Results Comparison
+## 📊 Results Summary
 
-| Model Architecture | Accuracy | Apple Cedar Rust (F1) | Potato Healthy (F1) |
-|------------------|----------|----------------------|---------------------|
-| Random Forest (Week 2) | 68.53% | 0.00 | 0.00 |
-| Simple CNN (Week 3) | 88.42% | 0.72 | 0.45 |
-| MobileNetV2 (Week 3) | **97.00%** | **1.00** | **0.80** |
+| Model Architecture | Accuracy | Key Observation |
+| :--- | :--- | :--- |
+| Random Forest (Week 2) | 68.53% | Failed to detect specific disease patterns (0% recall on some classes) |
+| Simple CNN (Week 3) | ~88% | High overfitting; unstable validation loss |
+| Transfer learning with **MobileNetV2 (Week 3)** | **97.34** | **Robust, stable, and solved "invisible" classes** |
 
 ---
 
 ## 📈 Performance Visualizations
 
 ### 1. Overfitting in Simple CNN (The Problem)
-Validation loss increases while training loss decreases, indicating memorization rather than generalization.
-
+Training accuracy quickly approaches 100% while validation accuracy stagnates around ~87–88%, alongside decreasing training loss and increasing validation loss.This indicates that the Simple CNN is memorizing training samples rather than learning robust, transferable visual features, leading to limited generalization on unseen data. And this makes it a classic case of overfitting and poor generalization.
 ### 2. Robustness in Transfer Learning (The Solution)
-MobileNetV2 exhibits stable convergence with overlapping training and validation curves.
+MobileNetV2 exhibits stable convergence with training and validation curves converge rapidly with steadily decreasing loss and consistently higher validation accuracy, implying good generalization without overfitting. The confusion matrix shows near-perfect diagonal dominance, indicating minimal misclassification and strong class-wise separability across all 38 diseases
 
 ---
 
@@ -167,77 +166,3 @@ MobileNetV2 exhibits stable convergence with overlapping training and validation
 - Classical ML models are insufficient for high-dimensional image data
 - CNNs learn spatial hierarchies but require regularization
 - Transfer Learning provides both **performance and efficiency**, even with limited training epochs
-
-
-## 📌 Project Overview
-This project explores the progression from traditional Machine Learning to state-of-the-art Deep Learning techniques for classifying plant leaf diseases. Working with the **PlantVillage dataset** (38 classes, ~54k images), the goal was to build a robust model capable of assisting in early disease diagnosis for crops like Apple, Corn, Potato, and Tomato.
-
-The project follows a rigorous 3-week timeline, moving from Exploratory Data Analysis (EDA) to Feature Engineering, and finally to Transfer Learning.
-
----
-
-## 📂 Repository Structure
-This repository contains the code for the first three weeks of the project, organized into three primary notebooks:
-
-| File/Notebook | Description |
-| :--- | :--- |
-| `Week1_EDA.ipynb` | **Data Analysis:** Data loading, class distribution visualization, and image quality assessment. |
-| `Week2_Classical_ML.ipynb` | **Baselines:** Feature extraction (flattening) and training traditional models (SVM, Random Forest). |
-| `Week3_Deep_Learning.ipynb` | **CNNs & Transfer Learning:** Custom CNN implementation vs. MobileNetV2 Transfer Learning. |
-
----
-
-## 🗓️ Weekly Progress & Methodology
-
-### **Week 1: Data Understanding & EDA**
-* **Objective:** Understand the data structure and quality.
-* **Key Findings:**
-    * The dataset contains **38 classes** (e.g., *Apple___Black_rot*, *Corn___Healthy*).
-    * Images are RGB (color) and of varying resolutions (resized to 224x224 for modeling).
-    * Class imbalance was observed, which would later impact standard ML models.
-
-### **Week 2: The Limits of Classical Machine Learning**
-* **Objective:** Establish a baseline using "Old School" ML algorithms.
-* **Approach:** Images were flattened into 1D vectors and fed into various classifiers.
-* **Models Tested:**
-    1.  **Dummy Classifier:** ~10% accuracy (Random chance).
-    2.  **Linear SVM (with PCA):** ~66% accuracy.
-    3.  **Random Forest (Unbounded):** ~68.5% accuracy (Best Performer).
-* **Analysis:**
-    * While Random Forest performed best, it struggled with "feature-poor" classes.
-    * **Critical Failure:** The model achieved an **F1-score of 0.00** for *Apple Cedar Rust* and *Potato Healthy*, proving that pixel-based feature extraction was insufficient for complex texture recognition.
-
-### **Week 3: The Deep Learning Shift**
-* **Objective:** Learn features automatically using Convolutional Neural Networks (CNNs).
-* **Approach 1: Simple CNN (From Scratch)**
-    * Built a custom 2-layer CNN (Conv2D -> ReLU -> MaxPool).
-    * **Result:** The model demonstrated **High Overfitting**.
-        * Training Accuracy: ~99%
-        * Validation Accuracy: ~88%
-    * *Observation:* Without pre-trained knowledge, the model memorized the training set but struggled to generalize.
-    
-* **Approach 2: Transfer Learning (The Solution)**
-    * **Model:** **MobileNetV2** (Pre-trained on ImageNet).
-    * **Technique:** Froze the backbone, replaced the classifier head, and fine-tuned for 5 epochs.
-    * **Result:** **97% Validation Accuracy**.
-    * *Redemption:* The *Apple Cedar Rust* class F1-score jumped from **0.00 (Random Forest)** to **1.00 (MobileNet)**.
-
----
-
-## 📊 Results Summary
-
-| Model Architecture | Accuracy | Key Observation |
-| :--- | :--- | :--- |
-| Random Forest (Week 2) | 68.53% | Failed to detect specific disease patterns (0% recall on some classes). |
-| Simple CNN (Week 3) | ~88% | High overfitting; unstable validation loss. |
-| **MobileNetV2 (Week 3)** | **97.00%** | **Robust, stable, and solved "invisible" classes.** |
-
-### **Visualizations**
-*(Placeholder: Upload screenshots of your Loss Curves and Confusion Matrix here)*
-
-![Confusion Matrix](path/to/your/confusion_matrix_image.png)
-*Fig 1: Confusion Matrix of MobileNetV2 showing near-perfect diagonal alignment.*
-
-## 🏆 Acknowledgments
-* **Winter in Data Science (WiDS)** for the mentorship and project structure.
-* **Kaggle** for the dataset and GPU resources.
