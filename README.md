@@ -5,25 +5,28 @@
 ---
 
 ## 📌 Project Overview
-This project explores the progression from traditional Machine Learning to state-of-the-art Deep Learning techniques for classifying plant leaf diseases. Working with the **PlantVillage dataset**, the mid-term goal was to build a robust model capable of assisting in disease diagnosis for different crops like Apple, Corn, Potato, Tomato, etc.
+This project explores the progression from traditional Machine Learning to state-of-the-art Deep Learning and Federated Learning techniques for classifying plant leaf diseases. Working with the **PlantVillage dataset**, the goal is to build a robust, scalable, and privacy-aware model capable of assisting in disease diagnosis for crops such as Apple, Corn, Potato, Tomato, and others.
 
-All of the code is stored in three different Kaggle notebooks, each of which can be accessed as they are linked to this repository. 
+All code is organized across four Kaggle notebooks, each linked within this repository.
 
-The project follows a **First Principles approach** along a 3-week timeline :
+The project follows a **First Principles approach** over a structured **4-week timeline**:
 
-- **Week 1**: Understanding the data through rigorous Exploratory Data Analysis (EDA).
-- **Week 2**: Establishing baselines using Classical Machine Learning techniques like SVMs & Random Forests.
-- **Week 3**: Developing state-of-the-art Deep Learning models (CNNs & Transfer Learning).
+- **Week 1:** Understanding the data through rigorous Exploratory Data Analysis (EDA).
+- **Week 2:** Establishing performance baselines using Classical Machine Learning techniques (SVMs, Random Forests).
+- **Week 3:** Developing deep learning models using CNNs and Transfer Learning.
+- **Week 4:** Simulating decentralized training using Federated Learning (Flower + FedAvg).
 
 ---
 
 ## 📂 Repository Structure
 
-| Notebook | Description | 
+| Notebook | Description |
 |--------|------------|
-| `Week1_EDA.ipynb` | Exploratory Data Analysis: data inspection, class imbalance visualization, pixel intensity analysis | 
-| `Week2_ClassicalML.ipynb` | Classical ML baselines: feature extraction, PCA, SVM vs Random Forest | 
-| `Week3_CNNs.ipynb` | Deep Learning: custom CNN (from scratch) vs Transfer Learning (MobileNetV2) | |
+| `Week1_EDA.ipynb` | Exploratory Data Analysis: data inspection, visualization, and statistical profiling |
+| `Week2_ClassicalML.ipynb` | Classical ML baselines: feature engineering, PCA, SVM vs Random Forest |
+| `Week3_CNNs.ipynb` | Deep Learning: custom CNN and Transfer Learning with MobileNetV2 |
+| `Week4_FederatedLearning.ipynb` | Federated Learning simulation using Flower and Federated Averaging |
+
 
 ---
 
@@ -42,7 +45,7 @@ Chose the *color* folder in the dataset to preserve diagnostic features such as 
 Various different graphs & visualisations were plotted like bar graphs, pie chart, sun burst chart, stacked bar graphs, treemap to assess the distribution pattern in the dataset.
 
 - **Data Quality Audit**:
-   - Aspect ratio was checekd using PIL, where all the images were found to be of the standard 256×256 size.
+   - Aspect ratio was checked using PIL, where all the images were found to be of the standard 256×256 size.
    - Background consistency check was done using corner-pixel color sampling.
    - Blurs were detected using the concept of Laplacian blur for various classes & plotted into a candlestick chart.
    - Lighting variation analysis was done using HSV-based brightness (V-channel) distribution across classes.
@@ -141,22 +144,72 @@ The dataset was split into augmented training and clean validation subsets using
 
 ---
 
+### Week 4: Federated Learning Simulation
+
+**Goal**  
+Evaluate whether high-performing centralized models can maintain accuracy when trained in a decentralized, privacy-preserving setup.
+
+---
+
+**Methodology**
+
+- **Environment Setup:**  
+  The Flower federated learning framework was installed programmatically with system and backend logs suppressed to ensure a clean execution environment.
+
+- **Runtime Configuration:**  
+  Core libraries were imported, runtime warnings and internal logs were silenced, and GPU availability was configured for efficient federated training.
+
+- **Data Partitioning:**  
+  The dataset was normalized and partitioned across **3 simulated clients**, with each client independently split into **80% training / 20% validation** sets to emulate decentralized data ownership.
+
+- **Federated Client Design:**  
+  A **MobileNetV2 model wrapped into a Flower `NumPyClient`** implementing local training, parameter exchange, and evaluation logic was defined.
+
+- **Federated Training:**  
+  Federated training was executed for **three rounds using FedAvg across three clients**, achieving stable convergence (**~92% → ~96% accuracy**). Runtime warnings originated from multi-process GPU initialization and dependency mismatches and did not impact training correctness.
+
+---
+
+**📊 Results**
+
+- **Distributed Accuracy Trend:**  
+  **92.4% → 94.9% → 95.8%**
+
+- **Centralized vs Federated Gap:**  
+  Performance drop relative to centralized baseline ≈ **1.5%**, well within acceptable privacy tradeoff limits.
+
+- **Deployment Insight:**  
+  Confirms feasibility of privacy-preserving deployment without major accuracy degradation.
+
+---
+
 ## 📊 Results Summary
 
 | Model Architecture | Accuracy | Key Observation |
-| :--- | :--- | :--- |
-| Random Forest (Week 2) | 68.53% | Failed to detect specific disease patterns (0% recall on some classes) |
-| Simple CNN (Week 3) | ~88% | High overfitting; unstable validation loss |
-| Transfer learning with **MobileNetV2 (Week 3)** | **97.34** | **Robust, stable, and solved "invisible" classes** |
+| :--- | :---: | :--- |
+| Random Forest (Week 2) | 68.53% | Failed to detect fine-grained disease patterns (near-zero recall on some classes) |
+| Simple CNN (Week 3) | ~88% | High overfitting; unstable validation loss and limited generalization |
+| Transfer Learning – MobileNetV2 (Week 3) | **97.34%** | Robust convergence; solved previously “invisible” classes |
+| Federated Averaging (3 Clients) – MobileNetV2 (Week 4) | **95.87%** | Minimal accuracy drop (~1.5%) while preserving privacy and stability |
 
 ---
 
 ## 📈 Performance Visualizations
 
 ### 1. Overfitting in Simple CNN (The Problem)
-Training accuracy quickly approaches 100% while validation accuracy stagnates around ~87–88%, alongside decreasing training loss and increasing validation loss.This indicates that the Simple CNN is memorizing training samples rather than learning robust, transferable visual features, leading to limited generalization on unseen data. And this makes it a classic case of overfitting and poor generalization.
-### 2. Robustness in Transfer Learning (The Solution)
-MobileNetV2 exhibits stable convergence with training and validation curves converge rapidly with steadily decreasing loss and consistently higher validation accuracy, implying good generalization without overfitting. The confusion matrix shows near-perfect diagonal dominance, indicating minimal misclassification and strong class-wise separability across all 38 diseases
+Training accuracy rapidly approaches 100% while validation accuracy plateaus around ~87–88%, accompanied by decreasing training loss and increasing validation loss. This divergence indicates memorization rather than robust feature learning, resulting in poor generalization to unseen samples.
+
+---
+
+### 2. Robustness in Transfer Learning (Centralized Solution)
+MobileNetV2 exhibits stable convergence with rapidly aligning training and validation curves, steadily decreasing loss, and consistently high validation accuracy. The confusion matrix demonstrates near-perfect diagonal dominance, confirming strong class-wise separability across all 38 diseases.
+
+---
+
+### 3. Stability in Federated Learning (Decentralized Extension)
+Federated training maintains stable convergence across communication rounds (**~92% → ~96% accuracy**) with only a minor performance drop relative to centralized training. This demonstrates that privacy-preserving decentralized learning retains strong predictive performance and model robustness.
+
+---
 
 ---
 
@@ -166,3 +219,4 @@ MobileNetV2 exhibits stable convergence with training and validation curves conv
 - Classical ML models are insufficient for high-dimensional image data
 - CNNs learn spatial hierarchies but require regularization
 - Transfer Learning provides both **performance and efficiency**, even with limited training epochs
+- A slight accuracy drop (“privacy tax”) is observed in Federated Learning, enabling decentralized training with minimal performance compromise.
