@@ -5,28 +5,33 @@
 ---
 
 ## 📌 Project Overview
-This project explores the progression from traditional Machine Learning to state-of-the-art Deep Learning and Federated Learning techniques for classifying plant leaf diseases. Working with the **PlantVillage dataset**, the goal is to build a robust, scalable, and privacy-aware model capable of assisting in disease diagnosis for crops such as Apple, Corn, Potato, Tomato, and others.
+This project explores the progression from traditional Machine Learning to state-of-the-art Deep Learning, Federated Learning, and basic MLOps practices for classifying plant leaf diseases. Working with the **PlantVillage dataset**, the goal is to build a robust, scalable, privacy-aware, and deployment-ready model capable of assisting in disease diagnosis for crops such as Apple, Corn, Potato, Tomato, and others.
 
-All code is organized across four Kaggle notebooks, each linked within this repository.
+Beyond model training, the project also demonstrates **local inference**, **metric visualization**, and **deployment-style workflows**, bridging the gap between experimentation and real-world usability.
 
-The project follows a **First Principles approach** over a structured **4-week timeline**:
+All code is organized across multiple Kaggle notebooks and supporting scripts, each linked within this repository.
+
+The project follows a **First Principles approach** over a structured **5-week timeline**:
 
 - **Week 1:** Understanding the data through rigorous Exploratory Data Analysis (EDA).
 - **Week 2:** Establishing performance baselines using Classical Machine Learning techniques (SVMs, Random Forests).
 - **Week 3:** Developing deep learning models using CNNs and Transfer Learning.
 - **Week 4:** Simulating decentralized training using Federated Learning (Flower + FedAvg).
+- **Week 5:** Persisting models and metrics, visualizing training behavior, enabling local inference, and introducing deployment-oriented MLOps workflows.
 
 ---
 
 ## 📂 Repository Structure
 
-| Notebook | Description |
-|--------|------------|
+| File / Notebook | Description |
+|----------------|------------|
 | `Week1_EDA.ipynb` | Exploratory Data Analysis: data inspection, visualization, and statistical profiling |
 | `Week2_ClassicalML.ipynb` | Classical ML baselines: feature engineering, PCA, SVM vs Random Forest |
 | `Week3_CNNs.ipynb` | Deep Learning: custom CNN and Transfer Learning with MobileNetV2 |
 | `Week4_FederatedLearning.ipynb` | Federated Learning simulation using Flower and Federated Averaging |
-
+| `Week5_MLOps.ipynb` | Model persistence, metric logging, Streamlit visualization, and deployment packaging |
+| `app.py` | Streamlit application for visualizing federated training metrics and inspecting model behavior |
+| `predict.py` | Local inference script for testing individual leaf images using the trained global model |
 
 ---
 
@@ -170,7 +175,7 @@ Evaluate whether high-performing centralized models can maintain accuracy when t
 
 ---
 
-**📊 Results**
+**Results**
 
 - **Distributed Accuracy Trend:**  
   **92.4% → 94.9% → 95.8%**
@@ -183,6 +188,59 @@ Evaluate whether high-performing centralized models can maintain accuracy when t
 
 ---
 
+### Week 5: Federated Model Persistence & MLOps Foundations
+
+**Goal**  
+Transition from experimental federated training to a production-oriented workflow by persisting models and metrics, enabling reproducibility, inspection, and lightweight monitoring.
+
+---
+
+**Methodology**
+
+- **Environment Hardening**
+  - Installed Flower and supporting libraries programmatically with backend logs suppressed for a clean MLOps workspace.
+  - Configured structured output directories for artifacts:
+    - `outputs/models/` → Saved global model weights  
+    - `outputs/logs/` → Federated training metrics  
+
+- **Data & Model Setup**
+  - Reused the normalized PlantVillage dataset and 3-client partitioning strategy from Week 4.
+  - Continued using transfer-learned **MobileNetV2** with a frozen backbone and custom classification head.
+
+- **Federated Training Enhancements**
+  - Increased federated rounds to **10** for smoother convergence.
+  - Added **multiple local epochs per client (3 epochs)** to improve local optimization.
+  - Reduced learning rate for improved training stability.
+  - Used weighted accuracy aggregation under **FedAvg**.
+
+- **Artifact Persistence**
+  - Persisted federated metrics per round into a CSV file (`federated_metrics.csv`).
+  - Extracted and saved the final global model weights (`global_plant_model.pth`).
+  - Packaged all outputs into a deployable archive for portability and reuse.
+
+- **Visualization & Monitoring**
+  - Loaded saved metrics locally and visualized training behavior using **Streamlit**.
+  - Enabled post-training analysis without rerunning federated simulations.
+  - Simulated lightweight model monitoring and inspection workflows.
+
+---
+
+**Results**
+
+- Federated accuracy steadily improved over 10 rounds:  
+  **93.8% → 97.4%**
+- Final accuracy closely matches centralized performance, confirming stability under longer federated training.
+- All training artifacts were successfully persisted and reused locally via Streamlit visualization.
+
+---
+
+**Key Insight**
+
+Week 5 demonstrates the shift from *model experimentation* to *system engineering*.  
+Persisting models and metrics enables reproducibility, debuggability, and real-world deployment workflows — a critical requirement for federated systems where training behavior is inherently distributed and harder to observe.
+
+---
+
 ## 📊 Results Summary
 
 | Model Architecture | Accuracy | Key Observation |
@@ -191,13 +249,14 @@ Evaluate whether high-performing centralized models can maintain accuracy when t
 | Simple CNN (Week 3) | ~88% | High overfitting; unstable validation loss and limited generalization |
 | Transfer Learning – MobileNetV2 (Week 3) | **97.34%** | Robust convergence; solved previously “invisible” classes |
 | Federated Averaging (3 Clients) – MobileNetV2 (Week 4) | **95.87%** | Minimal accuracy drop (~1.5%) while preserving privacy and stability |
+| Federated Model Deployment & Monitoring (Week 5) | **97.38%** | Persisted model and metrics; enabled reproducible evaluation and live visualization |
 
 ---
 
 ## 📈 Performance Visualizations
 
-### 1. Overfitting in Simple CNN (The Problem)
-Training accuracy rapidly approaches 100% while validation accuracy plateaus around ~87–88%, accompanied by decreasing training loss and increasing validation loss. This divergence indicates memorization rather than robust feature learning, resulting in poor generalization to unseen samples.
+### 1. Limits of Classical ML & Naive Learning (Baseline Problems)
+Classical machine learning baselines (Random Forests, SVMs) plateau around ~65–70% accuracy and fail to separate visually similar disease classes due to the absence of spatial feature learning. A naive CNN trained from scratch further demonstrates instability: training accuracy rapidly approaches 100% while validation accuracy plateaus around ~87–88%, accompanied by decreasing training loss and increasing validation loss. This behavior reflects memorization rather than robust feature extraction, leading to poor generalization on unseen samples.
 
 ---
 
@@ -211,6 +270,9 @@ Federated training maintains stable convergence across communication rounds (**~
 
 ---
 
+### 4. Observability & Reproducibility in MLOps (Deployment Layer)
+Federated training metrics were persisted to disk and visualized using a lightweight Streamlit dashboard, enabling post-training inspection without rerunning simulations. Model weights were saved and packaged for reuse, demonstrating reproducibility, deployment readiness, and real-world monitoring workflows.
+
 ---
 
 ## ✅ Key Takeaways
@@ -220,3 +282,4 @@ Federated training maintains stable convergence across communication rounds (**~
 - CNNs learn spatial hierarchies but require regularization
 - Transfer Learning provides both **performance and efficiency**, even with limited training epochs
 - A slight accuracy drop (“privacy tax”) is observed in Federated Learning, enabling decentralized training with minimal performance compromise.
+- Persisting models and metrics enables reproducibility, post-training analysis, and deployment readiness — bridging experimentation with real-world MLOps practices.
