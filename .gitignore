@@ -1,0 +1,27 @@
+# --- Personal helper documents (never pushed to GitHub) ---
+Guide.tex
+EndtermReport.tex
+docs/
+
+# --- LaTeX build artifacts ---
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.bbl
+*.blg
+*.lof
+*.lot
+
+# --- ML outputs & packaged artifacts ---
+outputs/
+*.zip
+*.pth
+
+# --- Python ---
+__pycache__/
+*.pyc
+.ipynb_checkpoints/

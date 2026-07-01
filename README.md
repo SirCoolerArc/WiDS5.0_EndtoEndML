@@ -25,11 +25,11 @@ The project follows a **First Principles approach** over a structured **5-week t
 
 | File / Notebook | Description |
 |----------------|------------|
-| `Week1_EDA.ipynb` | Exploratory Data Analysis: data inspection, visualization, and statistical profiling |
-| `Week2_ClassicalML.ipynb` | Classical ML baselines: feature engineering, PCA, SVM vs Random Forest |
-| `Week3_CNNs.ipynb` | Deep Learning: custom CNN and Transfer Learning with MobileNetV2 |
-| `Week4_FederatedLearning.ipynb` | Federated Learning simulation using Flower and Federated Averaging |
-| `Week5_MLOps.ipynb` | Model persistence, metric logging, Streamlit visualization, and deployment packaging |
+| `eda-week1.ipynb` | Exploratory Data Analysis: data inspection, visualization, and statistical profiling |
+| `ClassicalML_Week2.ipynb` | Classical ML baselines: feature engineering, PCA, SVM vs Random Forest |
+| `CNN_Week3.ipynb` | Deep Learning: custom CNN and Transfer Learning with MobileNetV2 |
+| `FederatedLearning_Week4.ipynb` | Federated Learning simulation using Flower and Federated Averaging |
+| `MLOps_Week5.ipynb` | Model persistence, metric logging, Streamlit visualization, and deployment packaging |
 | `app.py` | Streamlit application for visualizing federated training metrics and inspecting model behavior |
 | `predict.py` | Local inference script for testing individual leaf images using the trained global model |
 
